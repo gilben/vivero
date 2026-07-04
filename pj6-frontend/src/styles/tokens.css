@@ -1,0 +1,76 @@
+/* ============================================================
+   pj6 — Vivero Fresco design tokens (docs/design/design-system.md)
+   ALL color lives here. Recoloring the app = editing this file only.
+   Every value AA-verified — ratios documented in the design system.
+   ============================================================ */
+
+:root {
+  /* Brand — deep leaf green (6.4:1 on white) + pressed shade (11.1:1) */
+  --primary-color: #2d6a4f;
+  --accent-color:  #1b4332;
+  --on-primary:    #ffffff;
+
+  /* Neutrals — cool stone, chroma ~0 */
+  --bg-color:      #fafaf9;
+  --surface-color: #ffffff;
+  --text-color:    #1c1917;
+  --text-muted:    #57534e; /* 7.3:1 on bg */
+  --border-color:  #e7e5e4;
+
+  /* Semantic — never repurposed as brand */
+  --error-color:   #dc2626; /* 4.8:1 */
+  --error-strong:  #b91c1c;
+  --success-color: #047857; /* 5.5:1 */
+  --warning-color: #b45309; /* 5.0:1 */
+  --info-color:    #2563eb; /* 5.2:1 */
+
+  /* Spacing — 4px base */
+  --spacing-xs: 4px;  --spacing-sm: 8px;
+  --spacing-md: 16px; --spacing-lg: 24px;
+  --spacing-xl: 32px; --spacing-2xl: 48px;
+  --spacing-3xl: 64px; --spacing-4xl: 96px;
+
+  /* Shape — buttons/cards use --radius-lg; pills only for chips/badges */
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-full: 9999px;
+  --border-radius: var(--radius-lg);
+
+  /* Type — Satoshi self-hosted later; fallback renders fine meanwhile */
+  --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
+  --font-family: var(--font-sans);
+
+  /* Elevation — tinted toward ink, never pure black */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+  --shadow-md: 0 4px 6px rgba(28, 25, 23, 0.07);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+[data-theme="dark"] {
+  /* Brand on dark — soft leaf (7.9:1 on bg); dark ink on primary buttons */
+  --primary-color: #7fbf9b;
+  --accent-color:  #a7d7bd;
+  --on-primary:    #14201a;
+
+  /* Neutrals — green-tinted charcoal, never pure black */
+  --bg-color:      #14201a;
+  --surface-color: #1c2a22;
+  --text-color:    #e7e5e4;
+  --text-muted:    #a8a29e;
+  --border-color:  #2a3a30;
+
+  /* Semantic — lifted for dark surfaces */
+  --error-color:   #f87171;
+  --error-strong:  #fca5a5;
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --info-color:    #60a5fa;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.35);
+}
