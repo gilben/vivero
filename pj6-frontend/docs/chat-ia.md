@@ -38,9 +38,13 @@ DevTools y extraerla (el SDK de Anthropic exige el opt-in explícito
 
 ## Cómo funciona
 
-- **Grounding en el catálogo:** el system prompt
-  (`providers/systemPrompt.ts`) incluye el inventario real (id, nombre,
-  precio COP, luz, riego, stock). El modelo solo puede recomendar por `id`;
+- **Grounding en el catálogo (sin datos quemados):** el inventario llega por
+  la capa de datos compartida del catálogo — `useChat` lo obtiene con
+  `queryClient.fetchQuery(['products'], fetchProducts)`, la misma caché que
+  usa la página del catálogo. Cuando `fetchProducts` haga el flip a
+  `GET /products`, el chat consumirá el API real sin cambios. El system
+  prompt (`providers/systemPrompt.ts`) incluye ese inventario (id, nombre,
+  precio COP, luz, riego, stock); el modelo solo puede recomendar por `id`,
   ids inventados se descartan al validar (`providers/schema.ts`) y solo se
   recomiendan productos disponibles.
 - **Contrato JSON:** todos los proveedores devuelven

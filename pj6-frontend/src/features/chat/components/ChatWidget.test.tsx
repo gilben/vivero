@@ -13,6 +13,10 @@ vi.mock('../api', () => ({
   QUOTE_EMAIL: 'ventas@pj6vivero.com',
   PROMPT_MAX_LENGTH: 500,
 }))
+// el hook obtiene el inventario de la capa de datos del catálogo
+vi.mock('@/features/catalogo/api', () => ({
+  fetchProducts: vi.fn(async () => []),
+}))
 
 const mockedSend = vi.mocked(sendChatTurn)
 
@@ -86,7 +90,12 @@ describe('ChatWidget', () => {
     expect(
       await screen.findByRole('status', { name: 'El asistente está escribiendo' })
     ).toBeInTheDocument()
-    expect(mockedSend.mock.calls[0][0]).toEqual({ history: [], message: 'busco una monstera' })
+    // recibe historial + inventario provisto por la capa de datos del catálogo
+    expect(mockedSend.mock.calls[0][0]).toEqual({
+      history: [],
+      message: 'busco una monstera',
+      catalog: [],
+    })
 
     resolveSend(RESPONSE)
 

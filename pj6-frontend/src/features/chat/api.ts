@@ -1,6 +1,5 @@
-import { MOCK_PRODUCTS } from '@/features/catalogo/api'
 import { logger } from '@/utils/logger'
-import type { ChatRequestDto, ChatResponseDto, ProductDto, QuoteRequestDto } from '@/types/api'
+import type { ChatResponseDto, ProductDto, QuoteRequestDto } from '@/types/api'
 import type { ChatMessage } from './types'
 import { resolveProvider, sendViaProvider } from './providers'
 
@@ -99,30 +98,34 @@ export function buildMockChatResponse(
   }
 }
 
-// Cuando el backend (ST-AI-01) exponga /api/v1/ai/chat este cuerpo pasa a ser:
-//   const res = await apiClient.post<ChatResponseDto>('/v1/ai/chat', request)
-//   return res.data
-export async function sendChatMessage(request: ChatRequestDto): Promise<ChatResponseDto> {
-  await delay(MOCK_LATENCY_MS)
-  return buildMockChatResponse(request.message, MOCK_PRODUCTS)
-}
-
 export interface ChatTurnInput {
   /** Historial previo (sin el mensaje nuevo), para conversaciones multi-turno. */
   history: ChatMessage[]
   message: string
+  /**
+   * Inventario vigente, provisto por la capa de datos del catálogo
+   * (fetchProducts / caché de TanStack Query). Este módulo nunca conoce la
+   * fuente: cuando el catálogo consuma el API real, el chat lo hereda.
+   */
+  catalog: ProductDto[]
 }
 
 /**
  * Punto de entrada del chat: despacha al proveedor de IA configurado
  * (VITE_AI_PROVIDER) o al mock por defecto.
+ *
+ * Cuando el backend (ST-AI-01) exponga /api/v1/ai/chat, este despachador
+ * pasa a ser:
+ *   const res = await apiClient.post<ChatResponseDto>('/v1/ai/chat', { message: input.message })
+ *   return res.data
  */
 export async function sendChatTurn(input: ChatTurnInput): Promise<ChatResponseDto> {
   const provider = resolveProvider()
   if (provider === 'mock') {
-    return sendChatMessage({ message: input.message })
+    await delay(MOCK_LATENCY_MS)
+    return buildMockChatResponse(input.message, input.catalog)
   }
-  return sendViaProvider(provider, input.history, input.message, MOCK_PRODUCTS)
+  return sendViaProvider(provider, input.history, input.message, input.catalog)
 }
 
 /** Correo al que llegan las solicitudes de cotización. */

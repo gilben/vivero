@@ -319,7 +319,7 @@ STATUS WORKFLOW (the story files are the single source of truth for the queue):
 
 [USER STORY CONTEXT — updated by npx agent-docs]
 <!-- AGENT_DOCS_START -->
-Updated: 2026-07-04T16:49:03.806Z
+Updated: 2026-07-04T17:06:26.354Z
 Total stories: 4
 
 | ID | Title | Layer | Priority | Status |
@@ -347,19 +347,28 @@ productos reales del catálogo (respuestas híbridas: texto + intención +
 productos) y gestiona solicitudes de cotización recopilando los datos del
 cliente para su envío por correo.
 
+**Principio arquitectónico — fuente de datos genérica:** el módulo de chat
+**no conoce datos quemados**. El inventario se obtiene siempre de la capa de
+datos del catálogo (`fetchProducts`, caché de TanStack Query con
+`queryKey ['products']` — la misma fuente que la página del catálogo). Hoy esa
+capa sirve mocks; cuando el backend exponga `GET /products`, el flip ocurre en
+un único punto (`features/catalogo/api.ts`) y el chat consume el inventario
+real del API **sin ningún cambio en el módulo de chat**. Esto mantiene la
+implementación genérica para futuras integraciones.
+
 **Estado actual:** el frontend está implementado y funcional
 (`src/features/chat/`), con dos modos de operación:
 
-1. **Mock** (por defecto): motor de reglas sobre el inventario mock, sin
-   dependencias externas. Es el modo que usan los tests.
+1. **Mock** (por defecto): motor de reglas sobre el inventario que entrega la
+   capa de datos, sin dependencias externas. Es el modo que usan los tests.
 2. **LLM real** (configurable por `.env`): **Claude, OpenAI (ChatGPT) o
-   Gemini**, con el inventario del catálogo inyectado en el system prompt y
-   contrato JSON validado. Actualmente configurado con **Gemini
-   (`gemini-3.5-flash`)** y verificado end-to-end.
+   Gemini**, con el inventario inyectado en el system prompt y contrato JSON
+   validado. Actualmente configurado con **Gemini (`gemini-3.5-flash`)** y
+   verificado end-to-end.
 
-El servicio backend (Semantic Kernel + endpoint `/api/v1/ai/chat` + envío real
-de correos) sigue **pendiente**; el frontend está preparado para el flip
-(documentado en `docs/chat-ia.md`).
+El servicio backend (Semantic Kernel + `GET /products` + endpoint
+`/api/v1/ai/chat` + envío real de correos) sigue **pendiente**; el frontend
+está preparado para el flip (documentado en `docs/chat-ia.md`).
 
 ## Criterios de aceptación
 
@@ -374,6 +383,10 @@ de correos) sigue **pendiente**; el frontend está preparado para el flip
 - [x] Las recomendaciones usan **solo el inventario real disponible**: el
   modelo referencia productos por `id`; ids inexistentes se descartan al
   validar y solo se recomiendan productos con stock (máx. 4).
+- [x] **Sin datos quemados en el chat:** el inventario llega por la capa de
+  datos compartida del catálogo (`fetchProducts` + caché `['products']` de
+  TanStack Query). El módulo de chat es agnóstico a la fuente — al conectar
+  el API real de productos, el chat lo consume automáticamente.
 - [x] Conversación **multi-turno** (se envían los últimos 12 mensajes): el
   asistente interactúa con el cliente, entiende necesidades ("algo para un
   apartamento con poca luz") y recomienda con contexto.
@@ -390,6 +403,9 @@ de correos) sigue **pendiente**; el frontend está preparado para el flip
 
 ### Backend — pendiente
 
+- [ ] `GET /products` con el inventario real: al conectarlo en
+  `features/catalogo/api.ts`, catálogo y chat quedan servidos por el API sin
+  cambios adicionales.
 - [ ] Servicio conversacional en .NET (Semantic Kernel u orquestador
   equivalente) detrás de `/api/v1/ai/chat`, reutilizando el contrato JSON y
   el system prompt del frontend (`providers/schema.ts`,
@@ -431,6 +447,7 @@ de correos) sigue **pendiente**; el frontend está preparado para el flip
 | Hilo de mensajes + tarjetas de producto | `src/features/chat/components/ChatMessages.tsx` |
 | Tarjeta de cotización (confirmar / enviar / mailto) | `src/features/chat/components/QuoteCard.tsx` |
 | Despachador mock/LLM + envío de cotización | `src/features/chat/api.ts` |
+| Fuente de inventario (capa de datos compartida) | `src/features/chat/hooks/useChat.ts` → `fetchProducts` de `features/catalogo/api.ts` |
 | Selección de proveedor y conectores | `src/features/chat/providers/` (`claude.ts`, `openai.ts`, `gemini.ts`) |
 | System prompt con inventario + historial | `src/features/chat/providers/systemPrompt.ts` |
 | Contrato JSON + validación Zod | `src/features/chat/providers/schema.ts` |

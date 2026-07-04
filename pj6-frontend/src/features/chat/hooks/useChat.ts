@@ -1,15 +1,31 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchProducts } from '@/features/catalogo/api'
 import { logger } from '@/utils/logger'
 import type { ChatResponseDto } from '@/types/api'
-import { sendChatTurn, type ChatTurnInput } from '../api'
+import { sendChatTurn } from '../api'
+import type { ChatMessage } from '../types'
 import { useChatStore } from '../store/chatStore'
 
+interface ChatSendInput {
+  history: ChatMessage[]
+  message: string
+}
+
 export function useChat() {
+  const queryClient = useQueryClient()
   const messages = useChatStore(s => s.messages)
   const addMessage = useChatStore(s => s.addMessage)
 
-  const mutation = useMutation<ChatResponseDto, unknown, ChatTurnInput>({
-    mutationFn: sendChatTurn,
+  const mutation = useMutation<ChatResponseDto, unknown, ChatSendInput>({
+    mutationFn: async ({ history, message }) => {
+      // mismo queryKey que useProducts: reutiliza la caché del catálogo (o la
+      // puebla) — única fuente de inventario, sin datos quemados en el chat
+      const catalog = await queryClient.fetchQuery({
+        queryKey: ['products'],
+        queryFn: fetchProducts,
+      })
+      return sendChatTurn({ history, message, catalog })
+    },
   })
 
   const send = (text: string) => {
